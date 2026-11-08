@@ -7,8 +7,13 @@ from sklearn.preprocessing import StandardScaler
 import joblib
 import os
 
+# Resolve paths relative to this file so the script works from any directory
+HERE = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(HERE, "models")
+MODEL_PATH = os.path.join(MODEL_DIR, "fare_predictor.pkl")  # loaded by fare_api.py
+
 # Load dataset
-df = pd.read_csv("uber.csv")
+df = pd.read_csv(os.path.join(HERE, "uber.csv"))
 
 # Drop nulls and filter outliers
 df = df.dropna()
@@ -24,8 +29,10 @@ def haversine(lat1, lon1, lat2, lon2):
     a = np.sin(dphi/2)**2 + np.cos(phi1) * np.cos(phi2) * np.sin(dlambda/2)**2
     return 2 * R * np.arcsin(np.sqrt(a))
 
+# Distance in miles, matching the distanceInMiles value the backend sends to /predict
+KM_TO_MILES = 0.621371
 df['distance'] = haversine(df['pickup_latitude'], df['pickup_longitude'],
-                           df['dropoff_latitude'], df['dropoff_longitude'])
+                           df['dropoff_latitude'], df['dropoff_longitude']) * KM_TO_MILES
 
 # Extract hour from datetime
 df['pickup_datetime'] = pd.to_datetime(df['pickup_datetime'])
@@ -52,6 +59,6 @@ import numpy as np
 print("✅ RMSE:", np.sqrt(mean_squared_error(y_test, preds)))
 
 # Save model
-os.makedirs("ml/models", exist_ok=True)
-joblib.dump(model, "ml/models/fare_predictor.pkl")
-print("Model saved to ml/models/fare_predictor.pkl")
+os.makedirs(MODEL_DIR, exist_ok=True)
+joblib.dump(model, MODEL_PATH)
+print(f"Model saved to {MODEL_PATH}")

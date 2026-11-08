@@ -17,3 +17,10 @@ yarn-error.log*
 
 # OS
 .DS_Store
+
+# ML model artifacts (regenerate with Backend/ml/train_model.py)
+Backend/ml/models/
+__pycache__/
+
+# keep env templates
+!**/.env.example
